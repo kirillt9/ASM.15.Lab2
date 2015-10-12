@@ -296,7 +296,8 @@ my $menuEntry={
     'Clear table'=>\&clear
 };
 
-
+sub st04{
+my ($q, $global) = @_;
 readCookies();
 $content.= $query->start_html("Lab2 by Borisenko");
 if( my $act=$query->param('action')){
@@ -313,6 +314,7 @@ $header.= $query->header(-type=>"text/html",
 print $header;
 print $content;
 }else{
-    print $query->redirect("http://asugubkin.ru");
+    print $query->redirect($global->{selfurl});
+}
 }
 1;

@@ -2,20 +2,22 @@
 
 use strict;
 use CGI;
-use CGI::Carp qw(fatalsToBrowser);
+use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 
 use lib qw(/usr/www/asu/cgi-bin);
 
 use lab2::st00::st00;
-
+use lab2::st04::st04;
 my @MODULES = 
 (
 	\&ST00::st00,
+	\&ST04::st04,
 );
 
 my @NAMES = 
 (
 	"00. Sample",
+	"04. Borisenko",
 );
 
 Lab2Main();
