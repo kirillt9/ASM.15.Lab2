@@ -8,17 +8,21 @@ use lib qw(/usr/www/asu/cgi-bin);
 
 use lab2::st00::st00;
 use lab2::st04::st04;
+use lab2::st30::st30;
 my @MODULES = 
 (
 	\&ST00::st00,
 	\&ST04::st04,
+	\&ST30::st30,
 );
 
 my @NAMES = 
 (
 	"00. Sample",
 	"04. Borisenko",
+	"30. Pereverzev",
 );
+
 
 Lab2Main();
 
