@@ -120,6 +120,7 @@ sub st30
 	}
 	show_table();
 	show_form();
+	print '<hr><a href="'.$global->{selfurl}.'">Назад в меню</a>';
 	dbmclose(%buffer);
 }
 
