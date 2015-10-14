@@ -9,12 +9,14 @@ use lib qw(/usr/www/asu/cgi-bin);
 use lab2::st00::st00;
 use lab2::st04::st04;
 use lab2::st07::st07;
+use lab2::st26::st26;
 use lab2::st30::st30;
 my @MODULES = 
 (
 	\&ST00::st00,
 	\&ST04::st04,
 	\&ST07::st07,
+	\&ST26::st26,
 	\&ST30::st30,
 );
 
@@ -23,6 +25,7 @@ my @NAMES =
 	"00. Sample",
 	"04. Borisenko",
 	"07. Gorinov",
+	"26. Mikaelian",
 	"30. Pereverzev",
 );
 
