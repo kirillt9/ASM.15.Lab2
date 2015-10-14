@@ -37,6 +37,7 @@ sub st30
 				my ($name, $phone) = split(/--/, $value);
 				print "<tr>
 					<form method=\"post\">
+						<input type=\"hidden\" name=\"student\" value=\"".$global->{student}."\">
 						<input type=\"hidden\" name=\"id\" value=\"$key\">
 				  		<td>$name</td>
 				  		<td>$phone</td>
@@ -73,6 +74,7 @@ sub st30
 		print "<hr><form method=\"post\">
 		  	<p><h2>$title</h2></p>
 		  	$hidden_param
+		  	<input type=\"hidden\" name=\"student\" value=\"".$global->{student}."\">
 		  	<p>Имя:&nbsp<input type=\"text\" name=\"name\" value=\"$name\"></p>
 		  	<p>Номер телефона:&nbsp<input type=\"text\" name=\"phone\"  value=\"$phone\"></p>
 	  		<p><button name=\"action\" type=\"submit\" value=\"$action\">Сохранить</button></p>
