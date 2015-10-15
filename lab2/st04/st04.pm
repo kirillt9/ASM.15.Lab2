@@ -3,62 +3,16 @@ package ST04;
 use strict;
 use CGI;
 use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
-my $query = new CGI;
+my $q;
+my $global;
 #############Global Variables#############
 my $header="";
 my $content="";
-my $cookie;
-my $count=0;
 my $run=1;
-my $cash={};
+my %cash;
 my $currentkeys=["Name","Status","Address","E-Mail"];
+my $filename="st04";
 #############Subroutines###############
-#############
-# readCookies - fetch cookie from request
-# INPUT: none
-# OUTPUT: none
-#############
-sub readCookies(){
-    my $cook={$query->cookie('cash')};
-    while (my ($key,$val) = each %$cook) {
-	my @data=split(':::', $val);
-	$cash->{$key} ={@data};
-    }
-}
-#############
-# setCookies - set cookie to answer
-# INPUT: none
-# OUTPUT: none
-#############
-sub setCookies(){
-    my %cookHash;
-    for (keys %{$cash}) {	
-	my @data=();
-	while (my ($key,$val)=each %{$cash->{$_}}){
-	    push @data, ($key. ':::' .$val);
-	}
-	$cookHash{$_}=join (':::',@data);
-    }
-    
-    $cookie=$query->cookie(-name=>'cash',
-			  -value=>\%cookHash,
-			   -path=>'/cgi-bin/st04.cgi',
-			   -expires=>'+10m');
-}
-#############
-# showTable - create current cash table output
-#############
-sub showTable{
-    $content.= $query->start_table({ -border => 1,
-				     -width  => "100%" });
-    $content.= $query->th(["UID",@$currentkeys]);
-    foreach my $key(sort {$a<=>$b} keys (%$cash)){
-	$content.="<tr>".$query->td([$key,
-				     map{$cash->{$key}->{$_}
-				     } @$currentkeys])."</tr>";
-    }
-    $content.= $query->end_table();
-}
 #############
 # getUID - generate unique number for store in $cash
 # INPUT: none
@@ -66,7 +20,7 @@ sub showTable{
 #############
 sub getUID{
     my $UID=0;
-    for (keys %$cash) {
+    for (keys %cash) {
 	$UID=$_ if $UID<$_;
     }
     return $UID+1;
@@ -78,31 +32,14 @@ sub getUID{
 # return in st04
 ############
 sub add{
-    my $added=0;
-    if ($query->param("Name")){
+    if ($q->param("Name")){
 	 my @temp=();
 	 foreach (@$currentkeys){
-	    @temp=(@temp,$_,$query->param($_));
+	    @temp=(@temp,$_,$q->param($_));
 	}
 	my $uid = getUID();
-	 $cash->{$uid}={@temp};
-	 $added=1;
+	$cash{$uid}=join (":::",@temp);
     }
-    $content.= "<H1>Adding new item</H1>";
-    $content.= "Item was added" if ($added);
-    $content.= $query->start_form;
-    foreach (@$currentkeys){
-	$content.= "<br>";
-	$content.= "$_: ";
-	$content.= $query->textfield(-name=>"$_",
-				-override=>1,
-				-size=>50,
-				-maxlength=>80);
-    }
-    $content.="<br>";
-    $content.= $query->submit('action','Add');
-    $content.=$query->submit('action','Menu');
-    $content.= $query->end_form;
 }
 
 #############
@@ -112,34 +49,15 @@ sub add{
 # return in st04
 ############
 sub correct{
-    $content.="<H1>Correction</H1>";
-    my $corrected=0;
-    if (my $UID=$query->param('UID')){	    
-	my $aim=$cash->{$UID};
-	foreach(@$currentkeys){
-	    $aim->{$_}=$query->param($_);
+    if (my $UID=$q->param('UID')){
+    if (defined %cash{$UID}){
+	my @temp=();
+	foreach (@$currentkeys){
+	    @temp=(@temp,$_,$q->param($_));
 	}
-	$corrected=1;
+	$cash{$UID}=join (":::",@temp);
     }
-    $content.="<p>Correction done.</p>" if ($corrected);
-    $content.= $query->start_form;
-    $content.="UID for correction: ";
-    $content.=$query->popup_menu(-name=>'UID',
-				     -values=>[sort {$a<=>$b} keys %$cash]);
-    foreach (@$currentkeys){
-	$content.= "<br>";
-	$content.= "$_: ";
-	$content.= $query->textfield(-name=>"$_",
-				-override=>1,
-				-size=>50,
-				-maxlength=>80);
     }
-    $content.="<br>";
-    $content.= $query->submit('action','Correct');
-    $content.=$query->submit('action','Menu');
-    $content.= $query->end_form;
-    showTable();
-    
 }
 
 #############
@@ -149,23 +67,9 @@ sub correct{
 # return in st04
 ############
 sub delete{
-    $content.="<H1>Deletion</H1>";
-    my $deleted=0;
-    if (my $UID=$query->param('UID')){	    
-	delete $cash->{$UID};
-	$deleted=1;
+    if (my $UID=$q->param('UID')){	    
+	delete $cash{$UID};
     }
-    $content.="<p>Item was deleted.</p>" if ($deleted);
-    $content.= $query->start_form;
-    $content.="UID for deletion: ";
-    $content.=$query->popup_menu(-name=>'UID',
-				     -values=>[sort {$a<=>$b} keys %$cash]);
-    $content.="<br>";
-    $content.=$query->submit('action','Delete');
-    $content.=$query->submit('action','Clear table');
-    $content.=$query->submit('action','Menu');
-    $content.=$query->end_form;
-    showTable();
 }
 
 #############
@@ -175,86 +79,29 @@ sub delete{
  # return in st04
 ############
 
-sub show{
-    $content.= "<H1>Current table</H1>";
-    showTable();
-    $content.="<br>";
-    $content.=$query->start_form;
-    $content.=$query->submit('action','Menu');
-    $content.=$query->end_form;
-}
-
-#############
-# save - call menu for interactively save $cash to dbm file
-# INPUT: none
-# OUTPUT: none
-# return in st04
-############
-sub save{
-    $content.="<h1>Saving</h1>";
-    my $saved=0;
-    my $filename=$query->param('filename');
-    if  ($filename){
-	my %localdbm;
-	dbmopen(%localdbm,"$filename",0777) or $content.="<p>Can't create $filename</p>";
-	for (keys %{$cash}) {	
-	    my @data=();
-		while (my ($key,$val)=each %{$cash->{$_}}){
-		    push @data, ($key. ':::' .$val);
-		}
-	    $localdbm{$_}=join (':::',@data);
-	}
-	dbmclose(%localdbm);
-	$saved=1;
+sub show{ 
+    $content.= $q->start_table({ -border => 1,
+				     -width  => "100%" });
+    $content.= "\t".$q->th(["",@$currentkeys]);
+    foreach my $key(keys %cash){
+	my $temp={split(":::",%cash{$key})};
+	$content.="\n<!--".join(":",keys (%cash))."; current $key-->\n";
+	$content.="\t\t".$q->start_form."\n\t\t<tr>\n\t\t\t".$q->td(
+				["\n\t\t\t".$q->hidden("student",$global->{student})."\n\t\t\t"."<input type=\"hidden\" name=\"UID\" value=\"$key\">"."\n\t\t\t".$q->submit("action","Delete")."\n\t\t\t".$q->submit('action',"Correct"),
+				map{$q->textfield(-name=>"$_",
+						  -override=>1,
+						  -size=>20,
+						  -maxlength=>30,
+						  -value=>$temp->{$_})} @$currentkeys]
+				)."\t\t</tr>\n\t\t\t".$q->end_form."\n";
     }
-    $content.="<p>Table saved to $filename</p>" if ($saved);
-    $content.=$query->start_form;
-    $content.="Name of file to save: ";
-    $content.=$query->textfield(-name=>"filename",
-				-override=>1,
-				-value=>"data",
-				-size=>20,
-				-maxlength=>30);
-    $content.=$query->submit('action','Save');
-    $content.="<br>";
-    $content.=$query->submit('action','Menu');
-    $content.=$query->end_form;
-}
-
-#############
-# load - call menu for interactively load data from dbm file and put it to $cash
-# INPUT: none
-# OUTPUT: none
-# return in st04
-############
-sub load{
-    $content.="<h1>Loading</h1>";
-    $content.="<h5>Current table will be erased!</h5>";
-    my $loaded=0;
-    my $filename=$query->param('filename');
-    if  ($filename){
-	$cash={};
-	my %localdbm;
-	dbmopen(%localdbm,"$filename",0) or $content.="<p>Can't open $filename</p>";
-	while (my ($key,$val) = each %localdbm) {
-	    $cash->{$key}={split ':::', $val};
-	    
-	}
-	dbmclose(%localdbm);
-	$loaded=1;
-    }
-    $content.="<p>Table loaded from $filename</p>" if ($loaded);
-    $content.=$query->start_form;
-    $content.="Name of file to load: ";
-    $content.=$query->textfield(-name=>"filename",
-				-override=>1,
-				-value=>"data",
-				-size=>20,
-				-maxlength=>30);
-    $content.=$query->submit('action','Load');
-    $content.="<br>";
-    $content.=$query->submit('action','Menu');
-    $content.=$query->end_form;   
+    $content.="\n".$q->start_form."\n\t<tr>\n\t\t<td>\n\t\t\t".$q->hidden("student",$global->{student})."\n\t\t\t".$q->submit('action',"Add")."\n\t\t</td>\n";
+    $content.="\n\t\t<td>\n".(join("\n\t\t</td>\n\t\t<td>\n",map{"\t\t\t".$q->textfield(-name=>"$_",
+							      -override=>1,
+							      -size=>20,
+							      -maxlength=>30)} @$currentkeys))."\n\t\t</td>\n";
+    $content.="\t</tr>\n".$q->end_form;
+    $content.=$q->end_table;
 }
 
 #############
@@ -264,57 +111,45 @@ sub load{
 # return in st04
 ############
 sub quit{
-    $run=0;
+    print $q->redirect($global->{selfurl});
 }
 sub clear{
-    $cash={};
-    &delete();
+    %cash=();
 }
 
 sub Menu{
     
     $content.= "<H1>Lab2 by Borisenko</H1>\n";
-    $content.= $query->start_form;
-    $content.= $query->submit('action','Add');
-    $content.=$query->submit('action','Correct');
-    $content.=$query->submit('action','Delete');
-    $content.=$query->submit('action','Show');
-    $content.=$query->submit('action','Save');
-    $content.=$query->submit('action','Load');
-    $content.=$query->submit('action','Quit');
-    $content.= $query->end_form;
+    $content.= $q->start_form."\n";
+    $content.="\t".$q->hidden("student",$global->{student})."\n";
+    $content.="\t".$q->submit('action','Clear table')."\n";
+    $content.="\t".$q->submit('action','Quit')."\n";
+    $content.=$q->end_form."\n";
+    show();
 }
 my $menuEntry={
     'Add'=>\&add,
     'Correct'=>\&correct,
     'Delete'=>\&delete,
-    'Show'=>\&show,
-    'Save'=>\&save,
-    'Load'=>\&load,
     'Quit'=>\&quit,
     'Menu'=>\&Menu,
     'Clear table'=>\&clear
 };
 
 sub st04{
-my ($q, $global) = @_;
-readCookies();
-$content.= $query->start_html("Lab2 by Borisenko");
-if( my $act=$query->param('action')){
+  ($q, $global) = @_;
+  $content.= $q->start_html("Lab2 by Borisenko");
+  dbmopen(%cash,"$filename",0666);
+  if( my $act=$q->param('action')){
     $menuEntry->{$act}();
-}else{
-    Menu();
-}
-$content.= $query->end_html;
-if ($run){
-setCookies();
-$header.= $query->header(-type=>"text/html",
-			 -charset=>"windows-1251",
-			 -cookie=>$cookie);
-print $header;
-print $content;
-}else{
-    print $query->redirect($global->{selfurl});
-}
+  }
+  Menu();
+
+  $content.= $q->end_html;
+  $header.= $q->header(-type=>"text/html",
+			  -charset=>"windows-1251");
+  print $header;
+  print $content;
+  dbmclose(%cash);
 }
 1;
