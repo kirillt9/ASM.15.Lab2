@@ -90,6 +90,7 @@ sub st26
 
         print $q->start_table;
         print $q->start_form( -method  => 'POST');
+        print "<input type=\"hidden\" name=\"student\" value=\"".$global->{student}."\">";
         print $q->Tr(
                 $q->td('First Name:'),
                 $q->td("<input type=\"text\" name=\"f_name\" value=\"$f_name\">"));
@@ -126,7 +127,8 @@ sub st26
             my $idd = $_->getID();
             print $q->Tr(
                     $q->start_form(-method  => 'POST').
-                    "<input type=\"hidden\" name=\"idd\" value=\"$count\">".
+                    "<input type=\"hidden\" name=\"student\" value=\"".$global->{student}."\">
+                    <input type=\"hidden\" name=\"idd\" value=\"$count\">".
                      $q->td([$count,$_->getFirstName(), 
                                     $_->getLastName() ,
                                     $_->getID(), 
