@@ -12,6 +12,7 @@ use lab2::st07::st07;
 use lab2::st26::st26;
 use lab2::st30::st30;
 use lab2::st45::st45;
+use lab2::st47::st47;
 my @MODULES = 
 (
 	\&ST00::st00,
@@ -20,6 +21,7 @@ my @MODULES =
 	\&ST26::st26,
 	\&ST30::st30,
 	\&ST45::st45,
+	\&ST47::st47,
 );
 
 my @NAMES = 
@@ -30,6 +32,7 @@ my @NAMES =
 	"26. Mikaelian",
 	"30. Pereverzev",
 	"45. Yazkov",
+	"47. Utenov",
 );
 
 
