@@ -7,6 +7,7 @@ use CGI::Carp qw(warningsToBrowser fatalsToBrowser);
 use lib qw(/usr/www/asu/cgi-bin);
 
 use lab2::st00::st00;
+use lab2::st01::st01;
 use lab2::st04::st04;
 use lab2::st07::st07;
 use lab2::st09::st09;
@@ -14,9 +15,11 @@ use lab2::st26::st26;
 use lab2::st30::st30;
 use lab2::st45::st45;
 use lab2::st47::st47;
+
 my @MODULES = 
 (
 	\&ST00::st00,
+	\&ST01::st01,
 	\&ST04::st04,
 	\&ST07::st07,
 	\&ST09::st09,
@@ -29,6 +32,7 @@ my @MODULES =
 my @NAMES = 
 (
 	"00. Sample",
+	"01. Baglikova",
 	"04. Borisenko",
 	"07. Gorinov",
 	"09. Greznev",
