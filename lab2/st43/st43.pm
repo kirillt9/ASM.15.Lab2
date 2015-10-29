@@ -87,7 +87,8 @@ sub st43
 			print $q->Tr(
 				$q->start_form (-method=>'post'),
 				$q->hidden('student',$global->{student}),
-				$q->hidden('id',$key),
+				#$q->hidden('id',$key),
+				"<input type=\"hidden\" name=\"id\" value=\"$key\"  />",
 				$q->td ([split (";",%library{$key})]),
 				# $q->td($bookName),
 				# $q->td($publishYear),
