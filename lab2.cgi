@@ -19,6 +19,7 @@ use lab2::st24::st24;
 use lab2::st21::st21;
 >>>>>>> origin/master
 use lab2::st26::st26;
+use lab2::st27::st27;
 use lab2::st28::st28;
 use lab2::st30::st30;
 use lab2::st32::st32;
@@ -43,6 +44,7 @@ my @MODULES =
 	\&ST21::st21,
 >>>>>>> origin/master
 	\&ST26::st26,
+	\&ST27::st27,
 	\&ST28::st28,	
 	\&ST30::st30,
 	\&ST32::st32,
@@ -67,6 +69,7 @@ my @NAMES =
 	"21. Lomakina",
 >>>>>>> origin/master
 	"26. Mikaelian",
+	"27. Nikishaev",
 	"28. Nikolaeva",	
 	"30. Pereverzev",
 	"32. Pyatakhina",
