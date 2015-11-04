@@ -49,7 +49,7 @@ my @MODULES =
 	\&ST29::st29,	
 	\&ST30::st30,
 	\&ST31::st31,
-	\&ST30::st38,
+	\&ST38::st38,
 	\&ST32::st32,
 	\&ST43::st43,
 	\&ST39::st39,

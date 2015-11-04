@@ -1,202 +1,173 @@
-#!/usr/local/bin/perl
 
 package ST38;
-
+use  strict;
 use CGI;
-
-use strict;
-print "Content-type: text/html\n\n"; 
-
-sub st38{
-my $selfurl='2.cgi';
-menu();
-     
-	sub menu
-{
-		
-	my %t=('add'=>\&Add,'edit'=>\&Edit,'delete'=>\&Delete,'addE'=>\&AddE);
-	my $q=new CGI;
-	my %FILE;
-   	dbmopen(%FILE, "38", 0666);
-	my $type = $q->param("type");
-	PrintH();
-	$t{$type}->($q, \%FILE) if(defined $t{$type});
- my $fut;
-	Add2();
-	PrintForm();
-	Board($q,\%FILE);
-	PrintFooter($q);
-	dbmclose(%FILE);
-    #PrintList();
-	#PrintFooter();
-}
-sub PrintForm
-{   my ($q,$data)=@_;
-	print 	<<ENDOFHTML;
-<h2>Список жильцов дома:</h2>
-<form action=$selfurl method=post>
-<table border=0>
-<tr>
-<td  bgcolor="#9932CC" width=57><b>Номер</b></td>
-<td  bgcolor="#9932CC" width=207><b>Фамилия</b></td>
-<td  bgcolor="#9932CC" width=207><b>Имя</b></td>
-<td  bgcolor="#9932CC" width=87><b>Квартира</b></td>
-<td  bgcolor="#9932CC" width=87><b>Телефон</b></td>
-</tr>
-</form>
+use CGI::Carp qw(fatalsToBrowser);
 
 
-ENDOFHTML
-
-} 	
-
-         
-sub PrintH{ 
-my($q, $data) = @_;
-print 	<<ENDOFHTML;
-<html>
-<head>
-<title>
-Список жильцов</title>
-</head>
-<body>
-
-
-ENDOFHTML
-}
- sub Board
-{
-
-	my($q, $data) = @_;
-	foreach my $key(sort keys %$data)
-	{
-		next if($key eq '!!!ID!!!');
-		PrintList($key, $data);
-	}
-
-#	print "<br>";
-
-}
-
-
-sub PrintList
-{
-   my ($id,$data)=@_;
-
-	my ($Sname,$Name,$NumFlat,$NumTel)=split(/::/,$data->{$id});
-
-print 	<<ENDOFHTML;
-<form action=$selfurl method=post>
-<table border=0>
-<tr>
-<td  bgcolor="#DDAODD"><input type=text size=5 name=Number value="$id"></td>
-<td  bgcolor="#DDAODD"><input type=text size=30 name=Surname placeholder="Фамилия" value="$Sname"></td>
-<td  bgcolor="#DDAODD"><input type=text size=30 placeholder="Имя" name=Name value="$Name"></td>
-<td  bgcolor="#DDAODD"><input type=text size=10 maxlength=3  max=200 min=1 name=NumFlat value="$NumFlat"></td>
-<td  bgcolor="#DDAODD"><input type=text size=10  name=NumTel value="$NumTel"></td>
-<td><a href="$selfurl?type=delete&id=$id">&laquo;Delete&raquo;</a>
-<a href="$selfurl?type=edit&id=$id'">&laquo;Edit&raquo;</a>
-</tr></form>
-
-
-ENDOFHTML
+my @list;
+my $q = new CGI;
+my $student	= $q->param('student');
+my $event = $q->param('event');
+my $id = $q->param('id'); 
 	
-} 
-  sub PrintFooter
-{
-	my($q, $data) = @_;
-	print <<ENDOFHTML;
-</body>
-</html>
-ENDOFHTML
+sub st38 {
+
+	my ($q, $global) = @_;
+	print $q->header(-type=>"text/html",-charset=>"windows-1251");
+	print "<a href=\"$global->{selfurl}\">В главное меню</a>";
+	my %menu = (
+	"add" => \&add,
+	"edit" => \&edit,
+	"delete" => \&delete);	
+
+		if ($menu{$event}) 
+	{
+		$menu{$event}->();     
+	}	else {
+		load();  
+		show();	
+		}	 
 }
 
 
-sub Add
+
+
+sub add 
 {
-   	my($q, $data) = @_;
-	my $id =0+$q->param("id");
-	$id = ++$data->{'!!!ID!!!'} unless($id);
-	$data->{$id} = join('::', $q->param('Surname'), $q->param('Name'), $q->param('NumFlat'),$q->param('NumTel'));
+	load();
+	my $man=
+	{
+		Name => $q->param('name'),
+		Flat => $q->param('flat'),
+		Surname => $q->param('surname'),
+		Phone => $q->param('salary')
+	};
+	$list[$id]=$man;
+	save();
+	show();
 }
 
-sub Add2
+sub edit 
 {
-	my ($q,$data)=@_;
- 	PrintForm2();
-my ($Sname,$Name,$NumFlat,$NumTel);
+	load();
+	show();
+}
 
-print 	<<ENDOFHTML;
-<form action=$selfurl method=post>
-<input type=hidden name=type value='add'>
-<table border=0>
-<tr>
-<td  bgcolor="#B8860B"><input type=text size=30 name=Surname placeholder="Фамилия" value="$Sname"></td>
-<td  bgcolor="#B8860B"><input type=text size=30 placeholder="Имя" name=Name value="$Name"></td>
-<td  bgcolor="#B8860B"><input type=number size=10 placeholder="000"  maxlength=3 max="200" min="1" name=NumFlat value="$NumFlat"></td>
-<td  bgcolor="#B8860B"><input type=tel size=10  placeholder="xxx-xxx-xxxx" maxlength=10  name=NumTel value="$NumTel"></td>
-</td> 
-</tr>
-</table>
-<input type=submit value=" Добавить ">
-<br><br> 
-</form>                                      
-ENDOFHTML
+ sub show 
+ {
+ 	my ($q, $global) = @_;
+	my $newid=@list;
+	if ($event eq 'edit')	
+	{ print "
+	<form method = 'get'>
+	<input type = 'hidden' name = 'student' value = '$student'/>
+	<input type='hidden' name='event' value='add'>	<input type='hidden' name='id' value='$id'>	Имя:	<input type = 'text' name = 'name' value='$list[$id]->{Name}'>
+		Фамилия:	<input type = 'text' name = 'surname' value='$list[$id]->{Surname}'>Квартира:	<input type = 'number' name = 'flat' min = 1 value='$list[$id]->{Flat}'>
+	Телефон:	<input type = 'text' name = 'salary' value='$list[$id]->{Phone}'><BR><BR>	<input type = 'submit' value = 'Добавить'><BR><BR></form>";
+	 save();
+	 } else
+			{
+			print "
+			<form method = 'get'>
+			<input type = 'hidden' name = 'student' value = '$student'/>
+			<input type='hidden' name='event' value='add'>
+			<input type='hidden' name='id' value='$newid'>
+			Имя:
+			<input type = 'text' name = 'name'> 
+			
+			Фамилия:
+			<input type = 'text' name = 'surname'>
+			Квартира:
+			<input type = 'number' name = 'flat' min = 1>
+			Телефон:
+			<input type = 'text' name = 'salary'><BR><BR>
+			<input type = 'submit' value = 'Добавить'><BR><BR> </form>";
 		
-}
-sub PrintForm2
-{   my ($q,$data)=@_;
-print 	<<ENDOFHTML;
-<form action=$selfurl method=post>
-<table border=0>
-<tr>
-<td  bgcolor="#FFD700" width=207><b>Фамилия</b></td>
-<td  bgcolor="#FFD700" width=207><b>Имя</b></td>
-<td  bgcolor="#FFD700" width=87><b>Квартира</b></td>
-<td  bgcolor="#FFD700" width=87><b>Телефон</b></td>
-</tr>
-</form>
-ENDOFHTML
+			}
 
-} 	
-sub Delete
+	print "
+		<table width='100%' border=2>
+		<tr bgcolor = #F0FAFF>
+		<th>ID</th><th>Имя</th><th>Фамилия</th><th>Квартира</th><th>Телефон</th><th>Изменить</th></tr>";
+	 
+	my $num=0;
+
+	foreach my $arg(@list)
+	{	
+		print "
+		<tr><td>$num</td>
+		<td>$arg->{Name}</td>
+		<td>$arg->{Surname}</td>
+		<td>$arg->{Flat}</td>
+		<td>$arg->{Phone}</td>
+		<td><table><tr><td>
+		
+		<form method = 'get'>
+		<input type = 'hidden' name = 'student' value = '$student'/>
+		<input type='hidden' name='event' value='edit'>
+		<input type='hidden' name='id' value='$num'>
+		<input type = 'submit' value = 'Edit'></td>
+		
+		</form><td>
+		<form method = 'get'>
+		<input type = 'hidden' name = 'student' value = '$student'/>
+		<input type='hidden' name='event' value='delete'>
+		<input type='hidden' name='id' value='$num'>
+		<input type = 'submit' value = 'Delete'></td>
+		
+		</tr>
+		</table>
+		</form>
+		</tr>";
+		$num++;
+	}
+	print "</table>";		 
+ 		
+}
+
+sub delete 
 {
-    my($q, $data) = @_;
-	my $id = 0+$q->param("id");
-	delete $data->{$id} if($id);
+	load();
+	splice(@list,$id,1);
+	save();
+	load();
+	show();
 }
 
-sub Edit
-{  
-    my($q,$data) = @_;       
-	my $id = 0+$q->param("id");
-	my ($Sname,$Name,$NumFlat,$NumTel)=split(/::/,$data->{$id});
- 	PrintForm2();
 
-print 	<<ENDOFHTML;
-<h3>Редактирование выбранных данных:</h3>
-<form action=$selfurl method=post>
-<table border=0>
-<tr>
-<td  bgcolor="#B8860B"><input type=hidden size=30 name=id  value="$id"></td>
-<td  bgcolor="#B8860B"><input type=text size=30 name=Surname  value="$Sname"></td>
-<td  bgcolor="#B8860B"><input type=text size=30 placeholder="Имя" name=Name value="$Name"></td>
-<td  bgcolor="#B8860B"><input type=text size=10 maxlength=3 max=200 min=1 name=NumFlat value="$NumFlat"></td>
-<td  bgcolor="#B8860B"><input type=tel size=10   name=NumTel value="$NumTel"></td>
-</td> 
-</tr>
-</table>
-<input type=submit value=" Редактировать ">
-<input type=hidden name=type value='addE'> </form>
-<br><br><br><br>
-ENDOFHTML
-     
-}
+ sub save
+ {
+	my %hash;
+	dbmopen( %hash, "dbmfile", 0644);
+	%hash=();
+	my $j=0;
+	foreach my $i(@list)
+	{	
+		$hash{$j}= join(":", $i->{Name},$i->{Flat},$i->{Surname},$i->{Phone});
+		$j++;
+	}
+	dbmclose(%hash);
+ }
 
-sub AddE
-{
-   	my($q,$data) = @_;
-	my $id =0+$q->param('id');
-	$data->{$id} = join('::', $q->param('Surname'), $q->param('Name'), $q->param('NumFlat'),$q->param('NumTel'));
-}
-}
+ sub load
+ {
+	my %hash=();
+
+	dbmopen(my %hash, "dbmfile", 0644);
+	@list=();
+		while (( my $key,my $value) = each(%hash))
+	{
+		 my @arg=split(/:/,$hash{$key});
+		 my $man={
+		  Name => "$arg[0]",
+		  Flat => "$arg[1]",
+		  Surname => "$arg[2]",
+		  Phone => "$arg[3]"};
+		 $list[$key]=$man;
+	}
+	
+	dbmclose(%hash);
+ }
+ 
+ return 1;
