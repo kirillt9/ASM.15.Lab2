@@ -14,6 +14,7 @@ use lab2::st06::st06;
 use lab2::st07::st07;
 use lab2::st09::st09;
 use lab2::st17::st17;
+use lab2::st19::st19;
 use lab2::st24::st24;
 use lab2::st22::st22;
 use lab2::st26::st26;
@@ -41,6 +42,7 @@ my @MODULES =
 	\&ST07::st07,
 	\&ST09::st09,
 	\&ST17::st17,
+	\&ST19::st19,
 	\&ST24::st24,
 	\&ST22::st22,
 	\&ST26::st26,
@@ -68,6 +70,7 @@ my @NAMES =
 	"07. Gorinov",
 	"09. Greznev",
 	"17. Kirichenko",
+	"19. Konstantinova",
 	"24. Mamedov",
 	"22. Lomakina",
 	"26. Mikaelian",
